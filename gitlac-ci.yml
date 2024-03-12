@@ -1,0 +1,54 @@
+# Define the stages of the pipeline
+stages:
+ - fetch_weather
+ - build
+ - deploy
+
+# Define the variables for the registry, bucket, and weather API
+variables:
+ REGISTRY_NAME: your-registry-name 
+ REGISTRY_USER: $REGISTRY_USER 
+ REGISTRY_PASSWORD: $REGISTRY_PASSWORD 
+ IMAGE_NAME: your-image-name 
+ IMAGE_TAG: latest 
+ BUCKET_NAME: your-bucket-name 
+ WEATHER_API_KEY: your-weather-api-key 
+
+# Define the fetch_weather job that retrieves weather data
+fetch_weather:
+ stage: fetch_weather
+ image: curlimages/curl:latest # Use curl image to run the job
+
+ script:
+ - export WEATHER_DATA=$(curl -s "https://api.weather.com/your/weather/api/endpoint?key=$WEATHER_API_KEY") # Fetch weather data using the weather API
+ - echo "Weather data fetched: $WEATHER_DATA"
+
+# Define the build job that builds and pushes the docker image
+build:
+ stage: build
+ image: docker:19.03.12 # Use docker image to run the job
+
+ services:
+ - docker:19.03.12-dind # Use docker-in-docker service
+
+ script:
+ - docker login -u $REGISTRY_USER -p $REGISTRY_PASSWORD $REGISTRY_NAME # Login to the registry
+ - docker build -t $REGISTRY_NAME/$IMAGE_NAME:$IMAGE_TAG . # Build the docker image
+ - docker push $REGISTRY_NAME/$IMAGE_NAME:$IMAGE_TAG # Push the docker image
+
+# Define the deploy job that applies the Terraform configuration
+deploy:
+ stage: deploy
+ image: hashicorp/terraform:1.0.11 
+
+ before_script:
+ - rm -rf .terraform 
+ - gcloud auth activate-service-account - key-file <(echo $GCLOUD_SERVICE_KEY) # Authenticate with Google Cloud using GitLab secret for service account key
+ - gsutil cp gs://$BUCKET_NAME/terraform.tfstate terraform.tfstate # Copy the terraform state file from the bucket if it exists
+
+ script:
+ - terraform init # Initialize terraform
+ - terraform apply -auto-approve # Apply the terraform configuration without prompting for confirmation
+
+ after_script:
+ - gsutil cp terraform.tfstate gs://$BUCKET_NAME/terraform.tfstate # Copy the terraform state file back to the bucket 
