@@ -1,0 +1,22 @@
+Title: Implementation Challenges and Todos Documentation
+
+1. IAM Role Creation Issue: Encounter an error while creating IAM role `ec2_role`. The error message suggests a lack of authorization for the `iam:CreateRole` action.
+ Todo: Check IAM user permissions and ensure that the necessary policies are attached to allow role creation.
+
+2. IAM Policy Attachment Error: Failed to attach the IAM policy for ECR access to the IAM role `ec2_role`. The error indicates an invalid ARN for the IAM role. 
+Todo: Verify the ARN of the IAM role and correct it in the policy attachment resource.
+
+3. Vcpu Limit Exceeded: Received an error regarding the vCPU limit exceeding while creating the EC2 instance. The error message suggests that the specified instance type exceeds the current vCPU limit. 
+Todo: Check the instance type specified and adjust it to comply with the vCPU limit or request a limit increase from AWS.
+
+4. Weather API Integration: Integrated a job to fetch weather data using a curl command. However, further processing or usage of the weather data within the pipeline is not implemented. 
+Todo: Define how the weather data will be utilized in subsequent stages or jobs, such as for conditional deployments or notifications.
+
+5. Pipeline Secret Management: The pipeline script includes sensitive data such as registry credentials and API keys as plain variables. 
+Todo: Implement secure handling of secrets by utilizing GitLab CI/CD variables or external secret management systems.
+
+6. Terraform State Management: The pipeline script involves copying the Terraform state file to and from a AWS Cloud Storage bucket.
+ Todo: Implement a robust Terraform state management strategy, considering concurrency, locking, and versioning for collaborative deployments.
+
+7. Error Handling and Logging: Error handling and logging mechanisms are minimal in the pipeline script, making it challenging to diagnose issues. 
+Todo: Enhance error handling by implementing logging, alerting, and rollback mechanisms to ensure pipeline reliability and resilience.
